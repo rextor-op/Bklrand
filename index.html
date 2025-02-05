@@ -94,10 +94,25 @@
 
         function updatePeriodInfo() {
             let now = new Date();
+            
+            // Convert to IST (UTC+5:30)
             now.setMinutes(now.getMinutes() + now.getTimezoneOffset() + 330);
 
-            let periodNumber = "100001" + String(now.getMinutes()).padStart(4, '0');
-            let newPeriod = now.toISOString().slice(0,10).replace(/-/g,"") + periodNumber;
+            let currentHour = now.getHours();
+            let currentMinute = now.getMinutes();
+            let currentSecond = now.getSeconds();
+            
+            let startHour = 5;
+            let startMinute = 29;
+
+            // Calculate elapsed minutes since 5:29 AM
+            let elapsedMinutes = (currentHour * 60 + currentMinute) - (startHour * 60 + startMinute);
+            if (elapsedMinutes < 0) elapsedMinutes = 0;
+
+            // Format period number: yyyyMMdd100001xxxx
+            let formattedDate = now.toISOString().slice(0, 10).replace(/-/g, "");
+            let periodNumber = "100001" + String(elapsedMinutes).padStart(4, '0');
+            let newPeriod = formattedDate + periodNumber;
 
             if (newPeriod !== lastPeriod) {
                 lastPeriod = newPeriod;
@@ -105,7 +120,8 @@
                 runServerLoading();
             }
 
-            let remainingSeconds = 60 - now.getSeconds();
+            // Calculate remaining time in the 1-minute interval
+            let remainingSeconds = 60 - currentSecond;
             document.getElementById('textview2').innerText = `00:${String(remainingSeconds).padStart(2, '0')}`;
         }
 
