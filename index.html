@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ZeroDay Terminal</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Orbitron', sans-serif;
+            text-align: center;
+            margin: 0;
+            background: black;
+            color: #00ff00;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .container {
+            max-width: 600px;
+            padding: 20px;
+            border-radius: 15px;
+            background: rgba(0, 50, 0, 0.9);
+            box-shadow: 0px 0px 30px rgba(0, 255, 0, 0.7);
+            border: 2px solid #00ff00;
+        }
+
+        .glitch {
+            font-size: 2.5em;
+            font-weight: bold;
+            text-shadow: 2px 2px 10px #00ff00;
+            animation: glitch 0.8s infinite alternate;
+        }
+
+        @keyframes glitch {
+            0% { transform: translate(0px, 0px); }
+            25% { transform: translate(-2px, 2px); }
+            50% { transform: translate(2px, -2px); }
+            75% { transform: translate(-1px, 1px); }
+            100% { transform: translate(0px, 0px); }
+        }
+
+        .data-box {
+            font-size: 1.6em;
+            margin: 15px 0;
+            font-weight: bold;
+            padding: 15px;
+            border-radius: 10px;
+            background: rgba(0, 100, 0, 0.5);
+            box-shadow: 0px 0px 15px rgba(0, 255, 0, 0.5);
+            border: 1px solid #00ff00;
+        }
+
+        .result {
+            font-size: 1.8em;
+            font-weight: bold;
+            text-shadow: 0 0 20px #00ff00;
+            text-align: left;
+            white-space: pre-line;
+            min-height: 200px;
+            padding: 10px;
+            border-radius: 10px;
+            background: rgba(0, 50, 0, 0.8);
+            box-shadow: 0px 0px 20px rgba(0, 255, 0, 0.7);
+        }
+
+        canvas {
+            margin-top: 20px;
+            background: #003300;
+            border-radius: 10px;
+            padding: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="glitch">Phantom Number Ai</h1>
+
+        <div class="data-box">Period: <span id="textview1">Loading...</span></div>
+        <div class="data-box">Time Left: <span id="textview2">Loading...</span></div>
+        <div class="data-box result" id="resultNumbers">Initializing...</div>
+
+        <canvas id="myChart" width="400" height="200"></canvas>
+    </div>
+
+    <script>
+        let probability = Array(10).fill(1);
+        let lastPeriod = "";
+
+        function updatePeriodInfo() {
+            let now = new Date();
+            now.setMinutes(now.getMinutes() + now.getTimezoneOffset() + 330);
+
+            let periodNumber = "100001" + String(now.getMinutes()).padStart(4, '0');
+            let newPeriod = now.toISOString().slice(0,10).replace(/-/g,"") + periodNumber;
+
+            if (newPeriod !== lastPeriod) {
+                lastPeriod = newPeriod;
+                document.getElementById('textview1').innerText = newPeriod;
+                runServerLoading();
+            }
+
+            let remainingSeconds = 60 - now.getSeconds();
+            document.getElementById('textview2').innerText = `00:${String(remainingSeconds).padStart(2, '0')}`;
+        }
+
+        function runServerLoading() {
+            let loadingTexts = [
+                "Patching The Server...",
+                "Server Loading.... 10%",
+                "Server Loading.... 20%",
+                "Server Loading.... 30%",
+                "Server Loading.... 40%",
+                "Server Loading.... 50%",
+                "Server Loading.... 60%",
+                "Server Loading.... 70%",
+                "Server Loading.... 80%",
+                "Server Loading.... 90%",
+                "Server Loading.... 100%"
+            ];
+            
+            let index = 0;
+            let resultBox = document.getElementById("resultNumbers");
+            resultBox.innerText = "";
+
+            let loadingInterval = setInterval(() => {
+                resultBox.innerText += loadingTexts[index] + "\n";
+                index++;
+
+                if (index >= loadingTexts.length) {
+                    clearInterval(loadingInterval);
+                    setTimeout(() => {
+                        displayFinalResult();
+                    }, 1000);
+                }
+            }, 500);
+        }
+
+        function displayFinalResult() {
+            let possibleNumbers = [...Array(10).keys()];
+            possibleNumbers.sort(() => Math.random() - 0.5);
+            let numbers = possibleNumbers.slice(0, 3);
+            document.getElementById('resultNumbers').innerText += "\nYOUR SERVER RESULT :- " + numbers.join(", ");
+            
+            numbers.forEach(num => probability[num]++);
+            updateChart();
+        }
+
+        function updateChart() {
+            myChart.data.datasets[0].data = probability;
+            myChart.update();
+        }
+
+        setInterval(updatePeriodInfo, 1000);
+        updatePeriodInfo();
+
+        let ctx = document.getElementById('myChart').getContext('2d');
+        let myChart = new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'],
+                datasets: [{ label: 'Probability Distribution', data: probability, backgroundColor: '#00ff00' }]
+            },
+            options: { responsive: true }
+        });
+    </script>
+</body>
+</html>
